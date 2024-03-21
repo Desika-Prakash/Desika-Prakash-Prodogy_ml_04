@@ -1,0 +1,57 @@
+```python
+import numpy as np
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+# Define CNN model
+model = Sequential([
+    Conv2D(32, (3, 3), activation='relu', input_shape=(image_height, image_width, 3)),
+    MaxPooling2D((2, 2)),
+    Conv2D(64, (3, 3), activation='relu'),
+    MaxPooling2D((2, 2)),
+    Conv2D(128, (3, 3), activation='relu'),
+    MaxPooling2D((2, 2)),
+    Flatten(),
+    Dense(128, activation='relu'),
+    Dense(num_classes, activation='softmax')
+])
+
+# Compile model
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+# Data augmentation and preprocessing
+train_datagen = ImageDataGenerator(rescale=1./255,
+                                   shear_range=0.2,
+                                   zoom_range=0.2,
+                                   horizontal_flip=True)
+
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+train_generator = train_datagen.flow_from_directory(
+    train_data_dir,
+    target_size=(image_height, image_width),
+    batch_size=batch_size,
+    class_mode='categorical')
+
+validation_generator = test_datagen.flow_from_directory(
+    validation_data_dir,
+    target_size=(image_height, image_width),
+    batch_size=batch_size,
+    class_mode='categorical')
+
+# Train model
+model.fit(
+    train_generator,
+    steps_per_epoch=nb_train_samples // batch_size,
+    epochs=epochs,
+    validation_data=validation_generator,
+    validation_steps=nb_validation_samples // batch_size)
+
+# Evaluate model
+score = model.evaluate(validation_generator, verbose=0)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
+```
